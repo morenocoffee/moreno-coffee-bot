@@ -1,27 +1,34 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const app = express();
-app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
-  res.send("Moreno Coffee Bot is running!");
-});
+app.use(express.json());
 
-// VERIFY WEBHOOK
+// VERIFY TOKEN — este es el que pones en Meta Developer
+const VERIFY_TOKEN = "Moreno123";  
+
+// 1) VERIFICACIÓN DEL WEBHOOK (META LLAMA AQUÍ CON GET)
 app.get("/webhook", (req, res) => {
-  const verify_token = process.env.VERIFY_TOKEN;
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
 
-  if (req.query["hub.verify_token"] === verify_token) {
-    return res.send(req.query["hub.challenge"]);
+  if (mode && token) {
+    if (mode === "subscribe" && token === VERIFY_TOKEN) {
+      console.log("Webhook verified!");
+      return res.status(200).send(challenge);
+    } else {
+      return res.sendStatus(403);
+    }
   }
-  return res.status(403).send("Verification failed");
+  return res.sendStatus(400);
 });
 
-// HANDLE IG MESSAGES
+// 2) RECEPCIÓN DE MENSAJES (POST)
 app.post("/webhook", (req, res) => {
-  console.log("Webhook event received:", JSON.stringify(req.body, null, 2));
-  return res.sendStatus(200);
+  console.log("Mensaje recibido:", JSON.stringify(req.body, null, 2));
+  res.sendStatus(200);
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Bot running on port " + PORT));
+// Puerto Render
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Bot running on port ${PORT}`));
