@@ -1,12 +1,15 @@
 const express = require("express");
 const app = express();
-
 app.use(express.json());
 
-// VERIFY TOKEN — este es el que pones en Meta Developer
-const VERIFY_TOKEN = "Moreno123";  
+// =======================
+// VERIFY TOKEN (debes usar el mismo que pones en Meta)
+// =======================
+const VERIFY_TOKEN = process.env.Moreno_Coffee;
 
-// 1) VERIFICACIÓN DEL WEBHOOK (META LLAMA AQUÍ CON GET)
+// =======================
+// GET - VERIFICACIÓN DEL WEBHOOK PARA META
+// =======================
 app.get("/webhook", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -14,21 +17,27 @@ app.get("/webhook", (req, res) => {
 
   if (mode && token) {
     if (mode === "subscribe" && token === VERIFY_TOKEN) {
-      console.log("Webhook verified!");
-      return res.status(200).send(challenge);
+      console.log("WEBHOOK VERIFIED ✔");
+      res.status(200).send(challenge);
     } else {
-      return res.sendStatus(403);
+      console.log("❌ VERIFY TOKEN INCORRECTO");
+      res.sendStatus(403);
     }
   }
-  return res.sendStatus(400);
 });
 
-// 2) RECEPCIÓN DE MENSAJES (POST)
+// =======================
+// POST - MENSAJES (LO AGREGAMOS LUEGO)
+// =======================
 app.post("/webhook", (req, res) => {
   console.log("Mensaje recibido:", JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
 });
 
-// Puerto Render
+// =======================
+// INICIO DEL SERVIDOR
+// =======================
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Bot running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Bot corriendo en el puerto ${PORT}`);
+});
